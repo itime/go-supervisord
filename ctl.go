@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/jessevdk/go-flags"
 	"github.com/ochinchina/supervisord/config"
@@ -224,7 +225,23 @@ func (x *CtlCommand) _startStopProcesses(rpcc *xmlrpcclient.XMLRPCClient, verb s
 					if !reply.Value {
 						fmt.Printf("not ")
 					}
-					fmt.Printf("%s\n", state)
+					fmt.Printf("%s", state)
+					if verb == "start" && reply.Value {
+						ports := ""
+						for i := 0; i < 6; i++ {
+							time.Sleep(500 * time.Millisecond)
+							if procInfo, err := rpcc.GetProcessInfo(pname); err == nil && procInfo.Pid > 0 {
+								ports = util.GetListenPorts(procInfo.Pid)
+								if ports != "" {
+									break
+								}
+							}
+						}
+						if ports != "" {
+							fmt.Printf("  [:%s]", ports)
+						}
+					}
+					fmt.Printf("\n")
 				}
 			} else {
 				fmt.Printf("%s: failed [%v]\n", pname, err)
