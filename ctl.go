@@ -9,6 +9,7 @@ import (
 	"github.com/jessevdk/go-flags"
 	"github.com/ochinchina/supervisord/config"
 	"github.com/ochinchina/supervisord/types"
+	"github.com/ochinchina/supervisord/util"
 	"github.com/ochinchina/supervisord/xmlrpcclient"
 )
 
@@ -331,7 +332,13 @@ func (x *CtlCommand) showProcessInfo(reply *xmlrpcclient.AllProcessInfoReply, pr
 			if !x.showGroupName() {
 				processName = pinfo.Name
 			}
-			fmt.Printf("%s%-33s%-10s%s%s\n", x.getANSIColor(strings.ToUpper(pinfo.Statename)), processName, pinfo.Statename, description, "\x1b[0m")
+			portsStr := ""
+			if pinfo.Pid > 0 {
+				if ports := util.GetListenPorts(pinfo.Pid); ports != "" {
+					portsStr = fmt.Sprintf("  [:%s]", ports)
+				}
+			}
+			fmt.Printf("%s%-33s%-10s%s%s%s\n", x.getANSIColor(strings.ToUpper(pinfo.Statename)), processName, pinfo.Statename, description, portsStr, "\x1b[0m")
 		}
 	}
 }
